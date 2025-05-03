@@ -35,6 +35,7 @@ top_platform_height = 0
 bottom_platform_height = -300
 platform_size = [maze_width + 200, maze_length + 200]
 
+
 def draw_maze():
     glColor3f(0.8, 0.8, 0.8)  # Floor color
     glBegin(GL_QUADS)
@@ -45,54 +46,79 @@ def draw_maze():
     glEnd()
 
     glColor3f(0.5, 0.3, 0.2)  # Wall color
-    glBegin(GL_QUADS)  # Left wall
+
+    # Left wall
+    glBegin(GL_QUADS)
     glVertex3f(-maze_width/2, -maze_length/2, top_platform_height)
     glVertex3f(-maze_width/2, maze_length/2, top_platform_height)
     glVertex3f(-maze_width/2, maze_length/2, top_platform_height + maze_height)
     glVertex3f(-maze_width/2, -maze_length/2, top_platform_height + maze_height)
     glEnd()
 
-    glBegin(GL_QUADS)  # Right wall
+    # Right wall
+    glBegin(GL_QUADS)
     glVertex3f(maze_width/2, -maze_length/2, top_platform_height)
     glVertex3f(maze_width/2, maze_length/2, top_platform_height)
     glVertex3f(maze_width/2, maze_length/2, top_platform_height + maze_height)
     glVertex3f(maze_width/2, -maze_length/2, top_platform_height + maze_height)
     glEnd()
 
-    glBegin(GL_QUADS)  # Front wall
+    # Front wall
+    glBegin(GL_QUADS)
     glVertex3f(-maze_width/2, -maze_length/2, top_platform_height)
     glVertex3f(maze_width/2, -maze_length/2, top_platform_height)
     glVertex3f(maze_width/2, -maze_length/2, top_platform_height + maze_height)
     glVertex3f(-maze_width/2, -maze_length/2, top_platform_height + maze_height)
     glEnd()
 
-    glBegin(GL_QUADS)  # Back wall
+    # Back wall
+    glBegin(GL_QUADS)
     glVertex3f(-maze_width/2, maze_length/2, top_platform_height)
     glVertex3f(maze_width/2, maze_length/2, top_platform_height)
     glVertex3f(maze_width/2, maze_length/2, top_platform_height + maze_height)
     glVertex3f(-maze_width/2, maze_length/2, top_platform_height + maze_height)
     glEnd()
 
+    # Generate inner walls
     corridor_spacing = (maze_width - 5 * wall_thickness) / 4
     top_wall_segments.clear()
     for i in range(1, 4):
         wall_x = -maze_width/2 + i * (corridor_spacing + wall_thickness)
-        glColor3f(0.6, 0.4, 0.2)
         if i % 2 == 1:
             start_y = -maze_length/2
             end_y = start_y + (maze_length * 4 / 5)
         else:
             start_y = -maze_length/2 + (maze_length * 1 / 5)
             end_y = -maze_length/2 + maze_length
-        top_wall_segments.append((wall_x, start_y, end_y, wall_thickness))  # Added wall thickness
+        top_wall_segments.append((wall_x, start_y, end_y, wall_thickness))
+
+    # Draw portal before inner walls so they can hide it
+    draw_portal()
+
+    # Sort inner walls based on distance from camera
+    cam_x = math.sin(math.radians(camangle)) * camdistance
+    cam_y = math.cos(math.radians(camangle)) * camdistance
+    cam_z = camheight
+
+    def wall_distance(wall):
+        wx = wall[0]
+        wy = (wall[1] + wall[2]) / 2
+        wz = top_platform_height + maze_height / 2
+        dx = wx - cam_x
+        dy = wy - cam_y
+        dz = wz - cam_z
+        return dx*dx + dy*dy + dz*dz
+
+    top_wall_segments.sort(key=wall_distance, reverse=True)
+
+    glColor3f(0.6, 0.4, 0.2)
+    for wall_x, start_y, end_y, thickness in top_wall_segments:
         glBegin(GL_QUADS)
         glVertex3f(wall_x, start_y, top_platform_height)
         glVertex3f(wall_x, end_y, top_platform_height)
         glVertex3f(wall_x, end_y, top_platform_height + maze_height)
         glVertex3f(wall_x, start_y, top_platform_height + maze_height)
         glEnd()
-
-    draw_portal()
 
 
 def draw_portal():
@@ -123,28 +149,33 @@ def draw_bottom_platform():
     glEnd()
 
     glColor3f(0.5, 0.3, 0.2)  # Wall color
-    glBegin(GL_QUADS)  # Left wall
+
+    # Left wall
+    glBegin(GL_QUADS)
     glVertex3f(-maze_width/2, -maze_length/2, bottom_platform_height)
     glVertex3f(-maze_width/2, maze_length/2, bottom_platform_height)
     glVertex3f(-maze_width/2, maze_length/2, bottom_platform_height + maze_height)
     glVertex3f(-maze_width/2, -maze_length/2, bottom_platform_height + maze_height)
     glEnd()
 
-    glBegin(GL_QUADS)  # Right wall
+    # Right wall
+    glBegin(GL_QUADS)
     glVertex3f(maze_width/2, -maze_length/2, bottom_platform_height)
     glVertex3f(maze_width/2, maze_length/2, bottom_platform_height)
     glVertex3f(maze_width/2, maze_length/2, bottom_platform_height + maze_height)
     glVertex3f(maze_width/2, -maze_length/2, bottom_platform_height + maze_height)
     glEnd()
 
-    glBegin(GL_QUADS)  # Front wall
+    # Front wall
+    glBegin(GL_QUADS)
     glVertex3f(-maze_width/2, -maze_length/2, bottom_platform_height)
     glVertex3f(maze_width/2, -maze_length/2, bottom_platform_height)
     glVertex3f(maze_width/2, -maze_length/2, bottom_platform_height + maze_height)
     glVertex3f(-maze_width/2, -maze_length/2, bottom_platform_height + maze_height)
     glEnd()
 
-    glBegin(GL_QUADS)  # Back wall
+    # Back wall
+    glBegin(GL_QUADS)
     glVertex3f(-maze_width/2, maze_length/2, bottom_platform_height)
     glVertex3f(maze_width/2, maze_length/2, bottom_platform_height)
     glVertex3f(maze_width/2, maze_length/2, bottom_platform_height + maze_height)
@@ -162,7 +193,7 @@ def draw_bottom_platform():
         else:
             start_y = -maze_length/2 + (maze_length * 1 / 5)
             end_y = -maze_length/2 + maze_length
-        bottom_wall_segments.append((wall_x, start_y, end_y, wall_thickness))  # Added wall thickness
+        bottom_wall_segments.append((wall_x, start_y, end_y, wall_thickness))
         glBegin(GL_QUADS)
         glVertex3f(wall_x, start_y, bottom_platform_height)
         glVertex3f(wall_x, end_y, bottom_platform_height)
@@ -247,7 +278,7 @@ def specialkeys(key, x, y):
 def key_up(key, x, y):
     global key_states
     key = key.lower()
-    if key in key_states:  # Add check to avoid KeyError
+    if key in key_states:
         del key_states[key]
 
 
@@ -286,36 +317,28 @@ def mouseclick(button, state, x, y):
 def check_collision(new_x, new_y):
     player_radius = playersize / 2
     z = playerpos[2]
-
-    # Determine which platform the player is on
     on_top = abs(z - top_platform_height) < 100
     on_bottom = abs(z - bottom_platform_height) < 100
 
-    # Check outer boundaries
     half_width = maze_width / 2
     half_length = maze_length / 2
-
     if (new_x - player_radius < -half_width or
         new_x + player_radius > half_width or
         new_y - player_radius < -half_length or
         new_y + player_radius > half_length):
-        return True  # Collision with outer wall
+        return True
 
-    # Check inner walls based on platform
     if on_top:
-        # Check walls on top platform
         for wall_x, start_y, end_y, thickness in top_wall_segments:
             if (wall_x - player_radius <= new_x <= wall_x + thickness + player_radius and
                 start_y - player_radius <= new_y <= end_y + player_radius):
-                return True  # Collision with corridor wall
+                return True
     elif on_bottom:
-        # Check walls on bottom platform
         for wall_x, start_y, end_y, thickness in bottom_wall_segments:
             if (wall_x - player_radius <= new_x <= wall_x + thickness + player_radius and
                 start_y - player_radius <= new_y <= end_y + player_radius):
-                return True  # Collision with corridor wall
-
-    return False  # No collision
+                return True
+    return False
 
 
 def check_portal_collision():
@@ -325,10 +348,10 @@ def check_portal_collision():
     distance = math.sqrt(dx * dx + dy * dy)
     if distance < portal_size / 2:
         found_portal = True
-        playerpos[2] = bottom_platform_height + 50  # Lands just slightly above floor
+        playerpos[2] = bottom_platform_height + 50
         corridor_spacing = (maze_width - 5 * wall_thickness) / 4
-        playerpos[0] = -maze_width / 2 + wall_thickness + corridor_spacing / 2  # Leftmost corridor X
-        playerpos[1] = -maze_length / 2 + 100  # Safe Y in corridor
+        playerpos[0] = -maze_width / 2 + wall_thickness + corridor_spacing / 2
+        playerpos[1] = -maze_length / 2 + 100
         return True
     return False
 
@@ -346,19 +369,15 @@ def reset():
 
 def update():
     global playerpos, playerrot, gameover, key_states
-    
-    # Decrease key state counters
     keys_to_remove = []
     for k in key_states:
         key_states[k] -= 1
         if key_states[k] <= 0:
             keys_to_remove.append(k)
-    
-    # Remove keys with zero or negative counters
     for k in keys_to_remove:
         if k in key_states:
             del key_states[k]
-    
+
     if not gameover:
         dx, dy = 0, 0
         if b'w' in key_states and key_states[b'w'] > 0:
@@ -374,18 +393,14 @@ def update():
         if b'd' in key_states and key_states[b'd'] > 0:
             playerrot -= rotspeed
         playerrot %= 360
-
         new_x = playerpos[0] + dx
         new_y = playerpos[1] + dy
-
         if not check_collision(new_x, playerpos[1]):
             playerpos[0] = new_x
         if not check_collision(playerpos[0], new_y):
             playerpos[1] = new_y
-
         if not found_portal:
             check_portal_collision()
-
     glutPostRedisplay()
 
 
@@ -409,13 +424,10 @@ def drawhud():
         t = "Portal found! You've fallen to the bottom platform"
     for c in t:
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ord(c))
-    
-    # Debug info
     glRasterPos2f(10, 740)
     t = f"Player position: ({playerpos[0]:.1f}, {playerpos[1]:.1f}, {playerpos[2]:.1f})"
     for c in t:
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, ord(c))
-    
     glPopMatrix()
     glMatrixMode(GL_PROJECTION)
     glPopMatrix()
@@ -423,30 +435,34 @@ def drawhud():
 
 
 def draw():
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    glClear(GL_COLOR_BUFFER_BIT)
     glLoadIdentity()
     glViewport(0, 0, 1000, 800)
     setupcam()
-    draw_maze()
-    draw_bottom_platform()
-    drawplayer()
+
+    draw_bottom_platform()  # Farthest
+    draw_maze()             # Middle
+    drawplayer()            # Closest
     drawhud()
+
     glutSwapBuffers()
 
 
 glutInit()
-glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GL_DEPTH)
+glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB)  
 glutInitWindowSize(1000, 800)
 glutCreateWindow(b"3D Maze Game")
-glEnable(GL_DEPTH_TEST)
+
 corridor_spacing = (maze_width - 5 * wall_thickness) / 4
 playerpos[0] = -maze_width / 2 + wall_thickness + corridor_spacing / 2
 playerpos[1] = -maze_length / 2 + 100
-playerpos[2] = top_platform_height + 50  # Start slightly above floor
+playerpos[2] = top_platform_height + 50
+
 glutKeyboardUpFunc(key_up)
 glutDisplayFunc(draw)
 glutSpecialFunc(specialkeys)
 glutKeyboardFunc(keys)
 glutMouseFunc(mouseclick)
 glutIdleFunc(update)
+
 glutMainLoop()
